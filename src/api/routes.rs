@@ -3,7 +3,7 @@ use axum::{
     routing::{get, post},
     Json, Router,
 };
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
 use tower_http::cors::{Any, CorsLayer};
@@ -12,6 +12,11 @@ use crate::brain::pipeline;
 
 #[derive(Serialize)]
 pub struct RecognizeResponse {
+    pub transcript: String,
+}
+
+#[derive(Deserialize)]
+pub struct ReportRequest {
     pub transcript: String,
 }
 
@@ -29,7 +34,7 @@ pub fn create_router() -> Router {
 
     Router::new()
         .route("/recognize", post(recognize_handler))
-        .route("/report", get(report_handler))
+        .route("/report", post(report_handler))
         .layer(cors)
 }
 
@@ -73,12 +78,14 @@ async fn recognize_handler(mut multipart: Multipart) -> Result<Json<RecognizeRes
     Ok(Json(RecognizeResponse { transcript }))
 }
 
-/// Endpoint: GET /report
-/// Returns the final AI generated medical report.
-async fn report_handler() -> Json<ReportResponse> {
+/// Endpoint: POST /report
+/// Generates the final AI generated medical report from a transcript.
+async fn report_handler(Json(payload): Json<ReportRequest>) -> Result<Json<ReportResponse>, String> {
     println!("Received /report request");
-    // Placeholder for when we connect the transcript to the AI summarization model
-    Json(ReportResponse {
-        report: "This is a placeholder for the generated AI medical report based on the transcripts.".to_string(),
-    })
+    
+    let report = pipeline::generate_report(&payload.transcript)
+        .await
+        .map_err(|e| format!("Failed to generate report: {:?}", e))?;
+        
+    Ok(Json(ReportResponse { report }))
 }

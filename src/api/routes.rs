@@ -1,6 +1,6 @@
 use axum::{
     extract::Multipart,
-    routing::{get, post},
+    routing::post,
     Json, Router,
 };
 use std::sync::Arc;
@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
 use tower_http::cors::{Any, CorsLayer};
-use crate::brain::{rag::qdrant_db::QdrantDb, pipeline::*, llm::LlmClient};
+use crate::brain::{rag::qdrant_db::QdrantDb, pipeline, llm::LlmClient};
 use crate::services::embedding::EmbeddingService;
 use crate::core::config::Config;
 

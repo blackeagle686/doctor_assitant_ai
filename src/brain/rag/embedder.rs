@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use crate::services::embedding::EmbeddingService; 
 
 pub struct LocalEmbedder {
-    model:EmbeddingService::new()?, 
+    model:EmbeddingService
 }
 
 impl LocalEmbedder {

@@ -1,10 +1,10 @@
 use anyhow::{Context, Result};
-use qdrant_client::prelude::*;
+use qdrant_client::Qdrant;
 use qdrant_client::qdrant::{PointStruct, SearchPoints};
 use std::env;
 
 pub struct QdrantDb {
-    client: QdrantClient,
+    client: Qdrant,
     collection_name: String,
 }
 
@@ -14,7 +14,7 @@ impl QdrantDb {
         let collection_name = "medical_knowledge".to_string();
         
         println!("Connecting to Qdrant at {}", uri);
-        let client = QdrantClient::from_url(&uri).build()?;
+        let client = Qdrant::from_url(&uri).build()?;
 
         Ok(Self { client, collection_name })
     }
@@ -28,14 +28,12 @@ impl QdrantDb {
             ..Default::default()
         };
 
-        let response = self.client.search_points(&search_request).await.context("Failed to search Qdrant")?;
+        let response = self.client.search_points(search_request).await.context("Failed to search Qdrant")?;
         
         let mut results = Vec::new();
         for point in response.result {
-            if let Some(payload) = point.payload.get("text") {
-                if let Some(text) = payload.as_str() {
-                    results.push(text.to_string());
-                }
+            if let Some(qdrant_client::qdrant::value::Kind::StringValue(text)) = point.payload.get("text").and_then(|v| v.kind.as_ref()) {
+                results.push(text.to_string());
             }
         }
 

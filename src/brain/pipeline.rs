@@ -4,7 +4,7 @@ use std::collections::hash_map::DefaultHasher;
 
 use crate::services::speech_recognition::{RecognizerFactory, RecognizerType};
 use crate::brain::llm::LlmClient;
-use crate::brain::rag::{embedder::LocalEmbedder, qdrant_db::QdrantDb, redis_cache::RedisCache};
+use crate::brain::rag::{, qdrant_db::QdrantDb, redis_cache::RedisCache};
 
 pub async fn run_recognition(file_path: &str, use_local: bool) -> Result<String> {
     let rec_type = if use_local {

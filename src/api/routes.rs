@@ -39,7 +39,9 @@ pub fn create_router() -> Router {
 }
 
 
-pub struct
+pub struct AppState{
+    
+}
 
 /// Endpoint: POST /recognize
 /// Accepts a multipart form data with a file field (e.g., "audio" or "file").

@@ -41,7 +41,7 @@ impl QdrantDb {
     }
 
     pub async fn insert(&self, id: u64, vector: Vec<f32>, text: &str) -> Result<()> {
-        let payload = serde_json::json!({"text": text}).try_into()?;
+        let payload: qdrant_client::qdrant::Payload = serde_json::json!({"text": text}).try_into().unwrap_or_default();
         
         let point = PointStruct::new(id, vector, payload);
         let request = qdrant_client::qdrant::UpsertPointsBuilder::new(&self.collection_name, vec![point]).wait(true);

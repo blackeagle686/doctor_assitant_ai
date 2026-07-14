@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use redis::AsyncCommands;
-use std::env;
+
 
 pub struct RedisCache {
     client: redis::Client,

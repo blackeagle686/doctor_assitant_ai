@@ -38,6 +38,9 @@ pub fn create_router() -> Router {
         .layer(cors)
 }
 
+
+pub struct
+
 /// Endpoint: POST /recognize
 /// Accepts a multipart form data with a file field (e.g., "audio" or "file").
 /// Returns the transcribed text.

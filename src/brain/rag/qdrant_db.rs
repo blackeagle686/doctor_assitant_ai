@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use qdrant_client::Qdrant;
 use qdrant_client::qdrant::{PointStruct, SearchPoints};
-use std::env;
+
 
 pub struct QdrantDb {
     client: Qdrant,

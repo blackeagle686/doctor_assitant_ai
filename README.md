@@ -4,6 +4,8 @@
   <img src="https://img.shields.io/badge/Rust-000000?style=for-the-badge&logo=rust&logoColor=white" alt="Rust" />
   <img src="https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white" alt="OpenAI" />
   <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
+  <img src="https://img.shields.io/badge/Qdrant-FF5252?style=for-the-badge&logo=qdrant&logoColor=white" alt="Qdrant" />
+  <img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white" alt="Redis" />
   <img src="https://img.shields.io/badge/Axum-000000?style=for-the-badge" alt="Axum" />
 </div>
 <br>
@@ -12,48 +14,73 @@
 
 ---
 
-## 🌟 Key Features
+## ✨ Key Features
 - **Highly Accurate Speech-to-Text**: Optimized out-of-the-box for Egyptian Arabic and English code-switching using smart prompting.
 - **Dual Recognition Engine**: 
-  - **OpenAI API**: Blazing fast, cloud-based transcription using the Whisper-1 model.
-  - **Local Whisper (whisper.cpp)**: Offline, privacy-first transcription using the `whisper-rs` engine. Automatically downloads the required `ggml` models.
+  - **OpenAI API**: Fast, cloud-based transcription using the Whisper-1 model.
+  - **Local Whisper (whisper.cpp)**: Offline, privacy-first transcription using the `whisper-rs` engine.
+- **Cache-Augmented Generation (CAG)**: Utilizes Redis to cache expensive LLM report generations based on transcript hashes, drastically reducing latency and API costs.
+- **Retrieval-Augmented Generation (RAG)**: Uses `fastembed` (AllMiniLML6V2) locally in Rust to generate vector embeddings and retrieves similar medical context from **Qdrant** Vector DB.
 - **Robust API Layer**: Built on `axum`, offering high-performance async endpoints for seamless integration with frontend or mobile applications.
-- **Microservices Architecture**: Strictly adheres to software engineering best practices, including Strategy and Factory design patterns.
-- **Docker Ready**: Fully containerized with a highly optimized multi-stage build, managing heavy C++ and ALSA audio dependencies automatically.
+- **Ngrok Tunneling**: Built-in Ngrok integration for instant, secure HTTPS public exposure for webhook and mobile integration testing.
+- **Microservices Architecture**: Strictly adheres to software engineering best practices, including Strategy, Factory, and Dependency Injection patterns (`AppState`).
 
 ---
 
-## 🏗️ Architecture & Layers
+## 🏗️ System Architecture
 
-The project is thoughtfully divided into modular layers to ensure scalability and maintainability.
+Our system is designed for maximum throughput, low latency, and absolute stability. The following diagram illustrates the flow of a single patient consultation:
 
-### 1. The API Layer (`src/api/`)
-Acts as the bridge between the backend and external applications. It is powered by `axum` and `tokio`.
-- **`POST /recognize`**: Accepts `multipart/form-data` containing audio files, streams them into the AI pipeline, and returns the accurate text transcript.
-- **`GET /report`**: (WIP) Will return the fully structured AI medical report generated from the latest transcripts.
+```mermaid
+graph TD
+    %% Frontend & Entrypoint
+    Client[📱 Flutter App / Web] -->|HTTPS POST| Ngrok[🌐 Ngrok Tunnel]
+    Ngrok -->|Port 3000| Axum[⚙️ Rust Axum API]
 
-### 2. The Brain Layer (`src/brain/`)
-The core orchestrator of the application.
-- **`pipeline.rs`**: Acts as the nervous system. It takes incoming tasks (like an audio file), uses the Factory pattern to initialize the correct tool (Local vs. Cloud), and processes the data step-by-step.
+    %% API Layer
+    subgraph "Microservice Backend (Rust)"
+        Axum -->|Audio File| STT{🎙️ Speech-to-Text}
+        STT -->|Strategy: Cloud| WhisperAPI[☁️ OpenAI Whisper]
+        STT -->|Strategy: Local| WhisperCPP[💻 Local whisper.cpp]
+        
+        WhisperAPI -->|Raw Transcript| Brain[🧠 Brain Pipeline]
+        WhisperCPP -->|Raw Transcript| Brain
+        
+        subgraph "Intelligence Pipeline"
+            Brain -->|1. Hash Transcript| Redis[(⚡ Redis CAG)]
+            Redis -- Cache Hit --> Final[📄 Medical Report]
+            Redis -- Cache Miss --> LLM_Clean[🤖 LLM Summarization]
+            
+            LLM_Clean -->|Clean Summary| Embedder[🧮 FastEmbed Model]
+            Embedder -->|Vector| Qdrant[(📊 Qdrant Vector DB)]
+            Qdrant -->|Medical Context| LLM_Gen[🤖 LLM Generation]
+            LLM_Gen -->|Save to Cache| Redis
+            LLM_Gen --> Final
+        end
+    end
 
-### 3. The Services Layer (`src/services/`)
-Contains all isolated functional modules.
-- **`speech_recognition.rs`**: Defines the `SpeechRecognizer` trait and a `RecognizerFactory`, enabling seamless swapping between different AI models (Strategy Pattern).
-- **`openai_audio/`**: Implementation of the `SpeechRecognizer` that communicates with OpenAI's API securely via `reqwest`.
-- **`local_audio/`**: Implementation of the `SpeechRecognizer` that runs completely offline using `whisper-rs` (C++ bindings). 
-- **`recorder.rs`**: Directly interfaces with host hardware (`cpal`) to manually capture high-quality `.wav` audio.
+    Final -->|JSON Response| Client
+```
 
 ---
 
-## 🚀 Getting Started
+## 🏗️ Folder Structure
+
+- **`src/api/`**: Acts as the bridge between the backend and external applications using `axum`. Contains routes and `AppState` for dependency injection.
+- **`src/brain/`**: The core orchestrator. Contains the `pipeline.rs` nervous system, integrating `llm.rs` and the `rag/` module.
+- **`src/core/`**: Configuration and environment parsing.
+- **`src/services/`**: Isolated functional modules (Local audio, OpenAI audio, Local Embeddings via `fastembed`).
+
+---
+
+## ⚙️ Getting Started
 
 ### Prerequisites
-- [Rust](https://www.rust-lang.org/tools/install) (1.75+)
-- An OpenAI API Key (if using the cloud engine)
-- System dependencies (if building locally):
-  - Ubuntu/Debian: `sudo apt install libasound2-dev cmake clang build-essential pkg-config libssl-dev`
+- [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/)
+- An OpenAI API Key or OpenRouter API Key
+- Ngrok Auth Token (Optional, for public URL)
 
-### Setup
+### Setup & Launch
 1. **Clone the repository**:
    ```bash
    git clone https://github.com/blackeagle686/doctor_assitant_ai.git
@@ -61,51 +88,41 @@ Contains all isolated functional modules.
    ```
 
 2. **Configure Environment Variables**:
-   Create a `.env` file in the root directory:
-   ```env
-   OPENAI_API_KEY="sk-your-openai-api-key-here"
-   ```
-
-3. **Run the API Server Locally**:
+   Copy the example config and fill in your details:
    ```bash
-   cargo run --release
+   cp .env.example .env
+   nano .env
    ```
-   The server will start on `http://0.0.0.0:3000`.
 
----
+3. **Run the Infrastructure via Docker Compose**:
+   Our setup automatically builds the Rust image, starts Qdrant, starts Redis, and establishes the Ngrok tunnel.
+   ```bash
+   docker-compose up --build -d
+   ```
 
-## 🐳 Docker Deployment
-
-We provide a streamlined Docker setup. It uses a **multi-stage build** to keep the final image minimal while compiling all the heavy C++ and ALSA drivers.
-
-```bash
-# 1. Build the image
-docker build -t doctor_assist .
-
-# 2. Run the container (Mapping the sound device is required for manual recording)
-docker run -p 3000:3000 --device /dev/snd --env-file .env doctor_assist
-```
+4. **Get your Public HTTPS URL**:
+   ```bash
+   docker-compose logs ngrok | grep url=
+   ```
+   *Your API is now live and ready to accept traffic on this URL!*
 
 ---
 
 ## 🗺️ Roadmap
 
 - [x] **Phase 1: Foundation & Audio Capture**
-  - Setup Rust environment and `cpal` hardware audio capture.
 - [x] **Phase 2: Transcription Engine (The "Ears")**
-  - Implement Factory/Strategy patterns for AI models.
-  - Integrate OpenAI Whisper API (Cloud).
-  - Integrate `whisper-rs` (Local Offline).
-  - Optimize for Egyptian Arabic + English medical terms.
+  - Factory/Strategy patterns for AI models (Cloud & Local).
 - [x] **Phase 3: Network & API**
-  - Build the `axum` async REST API to allow external apps to upload audio.
-  - Implement the `/recognize` route.
-- [ ] **Phase 4: Intelligence & Reporting (The "Brain")**
-  - Connect the transcription output to an LLM (e.g., GPT-4 or a local LLaMA model).
-  - Parse the raw text and generate structured, professional medical reports.
-  - Finalize the `/report` endpoint.
-- [ ] **Phase 5: Frontend Integration**
-  - Build a sleek, modern web/mobile frontend for doctors to interact with the assistant seamlessly.
+  - High-performance `axum` async REST API.
+- [x] **Phase 4: Intelligence & Reporting (The "Brain")**
+  - Cache-Augmented Generation (CAG) with Redis.
+  - Retrieval-Augmented Generation (RAG) with `fastembed` and Qdrant.
+  - LLM pipeline for Medical Report structuring.
+- [x] **Phase 5: DevOps & Containerization**
+  - Multi-stage Dockerfile and Docker-Compose orchestration.
+- [ ] **Phase 6: Frontend Integration**
+  - Connect the Flutter App to the backend via the Ngrok Tunnel.
 
 ---
 *Built with passion to empower healthcare professionals with cutting-edge AI.*

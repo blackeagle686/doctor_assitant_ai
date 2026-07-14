@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
 use tower_http::cors::{Any, CorsLayer};
-use crate::
+use crate::brain::rag::qdrant_db
 use crate::brain::{pipeline, rag::qdrant_db::QdrantDb};
 
 #[derive(Serialize)]

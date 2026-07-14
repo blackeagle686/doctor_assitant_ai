@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
 use tower_http::cors::{Any, CorsLayer};
-use crate::brain::{rag::qdrant_db::QdrantDb, pipeline::*};
+use crate::brain::{rag::qdrant_db::QdrantDb, pipeline::*, llm::LlmClient};
 
 #[derive(Serialize)]
 pub struct RecognizeResponse {
@@ -42,7 +42,7 @@ pub fn create_router() -> Router {
 pub struct AppState{
     pub embedding: Arc<EmbeddingService>,
     pub vdb: Arc<QdrantDb> ,
-    pub llm: Option<dyn>, 
+    pub llm: LlmClient, 
     pub config: Arc<Config>
 }
 

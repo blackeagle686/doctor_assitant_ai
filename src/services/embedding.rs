@@ -1,3 +1,4 @@
+
 use anyhow::Result;
 use fastembed::{
     EmbeddingModel,

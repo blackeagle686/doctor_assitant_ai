@@ -44,7 +44,7 @@ pub fn create_router() -> Router {
 pub struct AppState{
     pub embedding: Arc<EmbeddingService>,
     pub vdb: Arc<QdrantDb> ,
-    pub llm: LlmClient, 
+    pub llm: Arc<LlmClient>, 
     pub config: Arc<Config>
 }
 

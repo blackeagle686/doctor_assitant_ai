@@ -10,7 +10,7 @@ use tokio::io::AsyncWriteExt;
 use tower_http::cors::{Any, CorsLayer};
 use crate::brain::{rag::qdrant_db::QdrantDb, pipeline::*, llm::LlmClient};
 use crate::services::embedding::EmbeddingService;
-use crate::core::
+use crate::core::config::Config;
 
 #[derive(Serialize)]
 pub struct RecognizeResponse {

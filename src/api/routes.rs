@@ -40,7 +40,8 @@ pub fn create_router() -> Router {
 
 
 pub struct AppState{
-    embedding: 
+    embedding: Arc<EmbeddingService>,
+    
 }
 
 /// Endpoint: POST /recognize

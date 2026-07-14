@@ -48,7 +48,7 @@ pub async fn generate_report(transcript: &str) -> Result<String> {
     println!("Cleaned Transcript: {}", cleaned_transcript);
 
     println!("Step 3: Embedding text using local all-MiniLM-L6-v2...");
-    let embedder = LocalEmbedder::new()?;
+    let embedder = EmbeddingService::new()?;
     let query_vector = embedder.embed(&cleaned_transcript)?;
 
     println!("Step 4: RAG Retrieval from Qdrant Vector Database...");

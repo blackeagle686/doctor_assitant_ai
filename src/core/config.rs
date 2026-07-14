@@ -1,3 +1,3 @@
 pub struct Config{
-    pub 
+    pub max_tokens: i
 }

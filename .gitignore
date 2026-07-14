@@ -4,3 +4,5 @@
 .env
 smart_git.py
 .fastembed_cache/ 
+*.bin
+*.bin

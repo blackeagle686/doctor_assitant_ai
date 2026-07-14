@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use crate::services::embeddings::EmbeddingModel; 
+use crate::services::embedding::EmbeddingService; 
 
 pub struct LocalEmbedder {
     // Model and tokenizer would go here in a full implementation

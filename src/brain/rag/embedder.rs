@@ -2,8 +2,7 @@ use anyhow::{Context, Result};
 use crate::services::embedding::EmbeddingService; 
 
 pub struct LocalEmbedder {
-    // Model and tokenizer would go here in a full implementation
-    // using candle_core and tokenizers crates.
+    model
 }
 
 impl LocalEmbedder {

@@ -3,7 +3,7 @@ use axum::{
     routing::{get, post},
     Json, Router,
 };
-use std::sync::Arc
+use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
@@ -42,7 +42,7 @@ pub fn create_router() -> Router {
 pub struct AppState{
     pub embedding: Arc<EmbeddingService>,
     pub vdb: Arc<QdrantDb> ,
-    pub llm: Option<dyn Box>, 
+    pub llm: Option<dyn>, 
     pub config: Arc<Config>
 }
 

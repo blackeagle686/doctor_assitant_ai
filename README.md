@@ -34,26 +34,26 @@ Our system is designed for maximum throughput, low latency, and absolute stabili
 ```mermaid
 graph TD
     %% Frontend & Entrypoint
-    Client[📱 Flutter App / Web] -->|HTTPS POST| Ngrok[🌐 Ngrok Tunnel]
-    Ngrok -->|Port 3000| Axum[⚙️ Rust Axum API]
+    Client[Flutter App / Web] -->|HTTPS POST| Ngrok[Ngrok Tunnel]
+    Ngrok -->|Port 3000| Axum[Rust Axum API]
 
     %% API Layer
     subgraph "Microservice Backend (Rust)"
-        Axum -->|Audio File| STT{🎙️ Speech-to-Text}
-        STT -->|Strategy: Cloud| WhisperAPI[☁️ OpenAI Whisper]
-        STT -->|Strategy: Local| WhisperCPP[💻 Local whisper.cpp]
+        Axum -->|Audio File| STT{Speech-to-Text}
+        STT -->|Strategy: Cloud| WhisperAPI[OpenAI Whisper]
+        STT -->|Strategy: Local| WhisperCPP[Local whisper.cpp]
         
-        WhisperAPI -->|Raw Transcript| Brain[🧠 Brain Pipeline]
+        WhisperAPI -->|Raw Transcript| Brain[Brain Pipeline]
         WhisperCPP -->|Raw Transcript| Brain
         
         subgraph "Intelligence Pipeline"
-            Brain -->|1. Hash Transcript| Redis[(⚡ Redis CAG)]
-            Redis -- Cache Hit --> Final[📄 Medical Report]
-            Redis -- Cache Miss --> LLM_Clean[🤖 LLM Summarization]
+            Brain -->|1. Hash Transcript| Redis[(Redis CAG)]
+            Redis -- Cache Hit --> Final[Medical Report]
+            Redis -- Cache Miss --> LLM_Clean[LLM Summarization]
             
-            LLM_Clean -->|Clean Summary| Embedder[🧮 FastEmbed Model]
-            Embedder -->|Vector| Qdrant[(📊 Qdrant Vector DB)]
-            Qdrant -->|Medical Context| LLM_Gen[🤖 LLM Generation]
+            LLM_Clean -->|Clean Summary| Embedder[FastEmbed Model]
+            Embedder -->|Vector| Qdrant[(Qdrant Vector DB)]
+            Qdrant -->|Medical Context| LLM_Gen[LLM Generation]
             LLM_Gen -->|Save to Cache| Redis
             LLM_Gen --> Final
         end
@@ -64,12 +64,31 @@ graph TD
 
 ---
 
-## 🏗️ Folder Structure
+## 📂 Folder Structure
 
-- **`src/api/`**: Acts as the bridge between the backend and external applications using `axum`. Contains routes and `AppState` for dependency injection.
-- **`src/brain/`**: The core orchestrator. Contains the `pipeline.rs` nervous system, integrating `llm.rs` and the `rag/` module.
-- **`src/core/`**: Configuration and environment parsing.
-- **`src/services/`**: Isolated functional modules (Local audio, OpenAI audio, Local Embeddings via `fastembed`).
+```text
+doctor_assist/
+├── .env.example           # Template for environment variables and API keys
+├── docker-compose.yml     # Multi-container orchestration (API, Qdrant, Redis, Ngrok)
+├── Dockerfile             # Multi-stage optimized build for the Rust application
+└── src/
+    ├── api/               # External REST Interface
+    │   └── routes.rs      # Axum endpoints and application state management
+    ├── brain/             # Core Intelligence & Business Logic
+    │   ├── pipeline.rs    # Main orchestrator (STT -> CAG -> RAG -> Report)
+    │   ├── llm.rs         # OpenAI and OpenRouter client
+    │   └── rag/           # Retrieval-Augmented Generation components
+    │       ├── embedder.rs   # Local text-to-vector embedding (fastembed)
+    │       ├── qdrant_db.rs  # Vector database client for semantic search
+    │       └── redis_cache.rs# Cache-Augmented Generation (CAG) layer
+    ├── core/              # Foundation
+    │   └── config.rs      # Secure environment variable parsing
+    ├── services/          # Independent Service Modules
+    │   ├── local_audio/   # Local whisper.cpp speech-to-text implementation
+    │   ├── openai_audio/  # Cloud OpenAI Whisper implementation
+    │   └── speech_recognition.rs # Factory and Strategy pattern definitions
+    └── main.rs            # Application entrypoint
+```
 
 ---
 

@@ -3,3 +3,4 @@
 *.log
 .env
 smart_git.py
+.fastembed_cache/ 

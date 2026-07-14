@@ -2,3 +2,4 @@
 *.wav
 *.log
 .env
+smart_git.py

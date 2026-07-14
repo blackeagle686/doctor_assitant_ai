@@ -43,7 +43,7 @@ pub struct AppState{
     pub embedding: Arc<EmbeddingService>,
     pub vdb: Arc<QdrantDb> ,
     pub llm: Option<dyn Box>, 
-    pub config:
+    pub config: Arc<Config>
 }
 
 /// Endpoint: POST /recognize

@@ -43,6 +43,18 @@ services:
       - redis_data:/data
     restart: unless-stopped
 
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: ngrok_tunnel
+    restart: unless-stopped
+    command:
+      - "http"
+      - "doctor_assist_api:3000"
+    environment:
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+    depends_on:
+      - doctor_assist_api
+
 volumes:
   qdrant_data:
   redis_data:

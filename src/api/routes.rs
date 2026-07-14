@@ -8,7 +8,7 @@ use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
 use tower_http::cors::{Any, CorsLayer};
 
-use crate::brain::pipeline;
+use crate::brain::{pipeline, rag::qdrant_db::QdrantDb};
 
 #[derive(Serialize)]
 pub struct RecognizeResponse {
@@ -40,8 +40,9 @@ pub fn create_router() -> Router {
 
 
 pub struct AppState{
-    embedding: Arc<EmbeddingService>,
-    vdb: Arc<QdrantDb
+    pub embedding: Arc<EmbeddingService>,
+    pub vdb: Arc<QdrantDb> ,
+
 }
 
 /// Endpoint: POST /recognize

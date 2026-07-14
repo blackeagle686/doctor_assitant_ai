@@ -33,23 +33,22 @@ pub struct LlmClient {
 }
 
 impl LlmClient {
-    pub fn new() -> Result<Self> {
-        dotenv::dotenv().ok();
-        
+    pub fn new(config: &crate::core::config::Config) -> Result<Self> {
         // Default to OpenRouter if configured, otherwise fallback to OpenAI
-        let (base_url, api_key, model) = if let Ok(key) = env::var("OPENROUTER_API_KEY") {
+        let (base_url, api_key, model) = if !config.openrouter_api_key.is_empty() {
             (
                 "https://openrouter.ai/api/v1/chat/completions".to_string(),
-                key,
-                env::var("OPENROUTER_MODEL").unwrap_or_else(|_| "meta-llama/llama-3-70b-instruct".to_string()),
+                config.openrouter_api_key.clone(),
+                config.openrouter_model.clone(),
             )
-        } else {
-            let key = env::var("OPENAI_API_KEY").context("Must provide OPENROUTER_API_KEY or OPENAI_API_KEY")?;
+        } else if !config.openai_api_key.is_empty() {
             (
                 "https://api.openai.com/v1/chat/completions".to_string(),
-                key,
-                env::var("OPENAI_MODEL").unwrap_or_else(|_| "gpt-4-turbo".to_string()),
+                config.openai_api_key.clone(),
+                config.llm_model.clone(),
             )
+        } else {
+            return Err(anyhow::anyhow!("Must provide OPENROUTER_API_KEY or OPENAI_API_KEY in configuration or .env"));
         };
 
         Ok(Self {

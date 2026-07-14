@@ -7,8 +7,8 @@ pub struct RedisCache {
 }
 
 impl RedisCache {
-    pub fn new() -> Result<Self> {
-        let uri = env::var("REDIS_URL").unwrap_or_else(|_| "redis://127.0.0.1/".to_string());
+    pub fn new(config: &crate::core::config::Config) -> Result<Self> {
+        let uri = config.redis_url.clone();
         println!("Connecting to Redis Cache at {}", uri);
         let client = redis::Client::open(uri).context("Failed to connect to Redis")?;
         

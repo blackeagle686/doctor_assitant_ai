@@ -9,8 +9,8 @@ pub struct QdrantDb {
 }
 
 impl QdrantDb {
-    pub async fn new() -> Result<Self> {
-        let uri = env::var("QDRANT_URL").unwrap_or_else(|_| "http://localhost:6334".to_string());
+    pub async fn new(config: &crate::core::config::Config) -> Result<Self> {
+        let uri = config.qdrant_url.clone();
         let collection_name = "medical_knowledge".to_string();
         
         println!("Connecting to Qdrant at {}", uri);

@@ -2,7 +2,7 @@ use anyhow::Result;
 use std::hash::{Hash, Hasher};
 use std::collections::hash_map::DefaultHasher;
 
-use crate::services::{speech_recognition::{RecognizerFactory, RecognizerType}, embedding};
+use crate::services::{speech_recognition::{RecognizerFactory, RecognizerType}, embedding::EmbeddingService};
 
 use crate::brain::llm::LlmClient;
 use crate::brain::rag::{qdrant_db::QdrantDb, redis_cache::RedisCache};

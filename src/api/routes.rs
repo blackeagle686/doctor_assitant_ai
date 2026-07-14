@@ -41,7 +41,7 @@ pub fn create_router() -> Router {
 
 pub struct AppState{
     embedding: Arc<EmbeddingService>,
-    
+    vdb: Arc<QdrantDb
 }
 
 /// Endpoint: POST /recognize

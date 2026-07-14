@@ -44,7 +44,8 @@ impl QdrantDb {
         let payload = serde_json::json!({"text": text}).try_into()?;
         
         let point = PointStruct::new(id, vector, payload);
-        self.client.upsert_points_blocking(&self.collection_name, None, vec![point], None).await?;
+        let request = qdrant_client::qdrant::UpsertPointsBuilder::new(&self.collection_name, vec![point]).wait(true);
+        self.client.upsert_points(request).await?;
         
         Ok(())
     }

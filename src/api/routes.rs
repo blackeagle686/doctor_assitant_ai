@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
 use tower_http::cors::{Any, CorsLayer};
-use crate::brain::{rag::qdrant_db::QdrantDb, pipeline, llm::LlmClient};
+use crate::brain::{rag::qdrant_db::QdrantDb, rag::redis_cache::RedisCache, pipeline, llm::LlmClient};
 use crate::services::embedding::EmbeddingService;
 use crate::core::config::Config;
 
@@ -27,7 +27,7 @@ pub struct ReportResponse {
     pub report: String,
 }
 
-pub fn create_router() -> Router {
+pub fn create_router(state: Arc<AppState>) -> Router {
     // Basic CORS setup to allow other applications to connect easily
     let cors = CorsLayer::new()
         .allow_origin(Any)
@@ -38,6 +38,7 @@ pub fn create_router() -> Router {
         .route("/recognize", post(recognize_handler))
         .route("/report", post(report_handler))
         .layer(cors)
+        .with_state(state)
 }
 
 
@@ -45,13 +46,17 @@ pub struct AppState{
     pub embedding: Arc<EmbeddingService>,
     pub vdb: Arc<QdrantDb> ,
     pub llm: Arc<LlmClient>, 
+    pub redis_cache: Arc<RedisCache>,
     pub config: Arc<Config>
 }
 
 /// Endpoint: POST /recognize
 /// Accepts a multipart form data with a file field (e.g., "audio" or "file").
 /// Returns the transcribed text.
-async fn recognize_handler(mut multipart: Multipart) -> Result<Json<RecognizeResponse>, String> {
+async fn recognize_handler(
+    axum::extract::State(state): axum::extract::State<Arc<AppState>>,
+    mut multipart: Multipart
+) -> Result<Json<RecognizeResponse>, String> {
     println!("Received /recognize request");
     let mut temp_file_path = String::new();
     
@@ -90,10 +95,13 @@ async fn recognize_handler(mut multipart: Multipart) -> Result<Json<RecognizeRes
 
 /// Endpoint: POST /report
 /// Generates the final AI generated medical report from a transcript.
-async fn report_handler(Json(payload): Json<ReportRequest>) -> Result<Json<ReportResponse>, String> {
+async fn report_handler(
+    axum::extract::State(state): axum::extract::State<Arc<AppState>>,
+    Json(payload): Json<ReportRequest>
+) -> Result<Json<ReportResponse>, String> {
     println!("Received /report request");
     
-    let report = pipeline::generate_report(&payload.transcript)
+    let report = pipeline::generate_report(&payload.transcript, state)
         .await
         .map_err(|e| format!("Failed to generate report: {:?}", e))?;
         

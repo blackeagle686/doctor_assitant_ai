@@ -40,7 +40,7 @@ pub fn create_router() -> Router {
 
 
 pub struct AppState{
-    
+    embedding: 
 }
 
 /// Endpoint: POST /recognize
